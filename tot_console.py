@@ -1,4 +1,5 @@
-# main.py
+# tot_console.py
+import json
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -10,12 +11,7 @@ from kivy.properties import DictProperty
 Window.size = (800, 600)
 
 class ToTScreen(Widget):
-    dict = DictProperty({20:"Hanted Sound", 21: "BOOO", 22:"HISS", 23:"SCARE",
-                        5:"Hoot", 6: "BOO", 7:"Hoot", 8: "BOO", 9: "YA",
-                        10:"Hoot", 11: "BOO", 12:"Hoot", 13: "BOO", 14: "YA",
-                        15:"Hoot", 16: "BOO", 17:"Hoot", 18: "BOO", 19: "YA",
-                        1:"Hoot", 2: "BOO", 3:"Hoot", 4: "BOO", 5: "YA"                                                
-                        })
+    button_dict = DictProperty({})
     
     def butt_pressed(self, id):
          print(f"Button '{id}' pressed!")
@@ -26,10 +22,25 @@ class TotConsole(App):
     def build(self):
         #return Builder.load_file('totconsole.kv')
         #Window.show()
+        with open('totconsole.json') as fptr:
+            button_dict = json.load(fptr)
+    
+        # swap the json string key index for int that we need in the kv file
+        button_dict = {int(k): v for k, v in button_dict.items() }
+        print(button_dict)
         return ToTScreen()
-        
-        
 
 
+    
 if __name__ == '__main__':
+
+    with open('config.json') as fptr:
+        config = json.load(fptr)
+        
+    SERVER = config["server"]
+    SSID = config["ssid"]
+    PWD = config["password"]
+    pflag = config["printflag"]
+
+
     TotConsole().run()
