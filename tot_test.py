@@ -1,4 +1,5 @@
 # tot_console.py
+from fileinput import filename
 import json
 from kivy.app import App
 from kivy.core.window import Window
@@ -87,6 +88,9 @@ class TotFloatLayout(App):
             popup.dismiss()
             if selection:
                 self.selected_file = os.path.basename(selection[0])
+                self.statline.text = f"Selected file: {self.selected_file}"
+                if hasattr(self, 'file_button'):
+                    self.file_button.text = 'Current Sound File: ' + self.selected_file
                 print(f"Selected file: {self.selected_file}")
             else:
                 print("No file selected")
@@ -122,11 +126,13 @@ class TotFloatLayout(App):
             content.add_widget(output_box)
             
             # File selector
-            file_button = Button(text='Select Sound File', size_hint_y=None, height=40)
-            file_button.bind(on_press=self.select_file_for_config)
-            content.add_widget(file_button)
+            filename = item[6] 
+            self.file_button = Button(text='Current Sound File: '+ filename, size_hint_y=None, height=40)
+            self.file_button.bind(on_press=self.select_file_for_config)
+            content.add_widget(self.file_button)
             self.selected_file = item[6] if item[5] == 'SND' else None
             
+
             # Effect type
             content.add_widget(Label(text='Effect Type:', size_hint_y=None, height=30))
             effect_box = BoxLayout(size_hint_y=None, height=40)
@@ -170,7 +176,7 @@ class TotFloatLayout(App):
             ok.bind(on_press=lambda x: self.save_config(popup, button_id, label_input.text, output_buttons, effect_buttons, output_map, effect_map))
             
             popup.open()
-
+            
        def on_effect_selected(self, instance):
             if instance.text == 'MQTT':
                 self.topic_input.opacity = 1
@@ -241,7 +247,7 @@ class TotFloatLayout(App):
                 if item:
                     btn = Button(text=str(item[3]),
                        background_color = ast.literal_eval(item[4]),
-                       size_hint=(0.18, 0.18),
+                       size_hint=(0.19, 0.19),
                        pos_hint={'x': float(item[1]), 'y': float(item[2])})
                     btn.bind(on_press=lambda instance, i=i: self.butt_pressed(i))                  
                     self.layout.add_widget(btn)
@@ -270,7 +276,7 @@ class TotFloatLayout(App):
                             #os.system('omxplayer --audio_fifo 15 sfx/' + sound_file + '&')
 
                         except FileNotFoundError:
-                            self.statline.text = f"Error playing sound, file not found: {e}"
+                            self.statline.text = f"Error playing sound, file not found"
                         else:
                             self.statline.text = f"Playing sound: {sound_file}"
                   else:
