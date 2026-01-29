@@ -20,9 +20,22 @@ from time import sleep
 #import paho.mqtt.client as mqtt
 
 configmode = False
+colord = {
+    "BLACK": "(0,0,0,1)",
+    "YELLOW": "(1,1,0,1)",
+    "GREEN": "(0,1,0,1)",
+    "BLUE": "(0,0,1,1)",
+    "RED": "(1,0,0,1)",
+    "ORANGE": "(1,0.5,0,1)",
+    "PURPLE": "(0.5,0,0.5,1)",
+    "PINK": "(1,0.75,0.8,1)",
+    "CYAN": "(0,1,1,1)" 
+    }
 
 class TotFloatLayout(App):
        global configmode
+       global colord
+
        
        def select_file(self):
             # Create a box layout for the file chooser and buttons
@@ -185,6 +198,16 @@ class TotFloatLayout(App):
                 self.topic_input.opacity = 0
                 self.payload_input.opacity = 0
 
+       def get_color_for_output(self, output_type):
+            """Get button color based on output type (A1, A2, Amp1, Amp2)"""
+            color_map = {
+                'A1': 'GREEN',      # 3.5 #1
+                'A2': 'BLUE',       # 3.5 #2
+                'Amp1': 'RED',
+                'Amp2': 'ORANGE'
+            }
+            return color_map.get(output_type, 'GREEN')
+
        def save_config(self, popup, button_id, label, output_buttons, effect_buttons, output_map, effect_map):
             # Get selected output
             global configmode
@@ -221,16 +244,19 @@ class TotFloatLayout(App):
                 item[6] = 'macro'  # placeholder
                 item[7] = ''
             
-            # Update button text
+            # Update button color based on output type
+            color_name = self.get_color_for_output(output_code)
+            item[4] = color_name
+            
+            # Update button text and color
             self.buttons[button_id].text = label
+            self.buttons[button_id].background_color = ast.literal_eval(colord[color_name])
             
             # Save to json
             with open('tot_test.json', 'w') as f:
                 json.dump(button_dict, f, indent=4)
 
-            configmode = False
             popup.dismiss()
-            self.buttons[26].background_color = (0, 0, 0, 1)  # black
        
        def build(self):
             self.title = 'Tot Console Test'
@@ -244,9 +270,9 @@ class TotFloatLayout(App):
 
             for i in range(1, 31):
                 item = button_dict.get(i)
-                if item:
+                if item:                    
                     btn = Button(text=str(item[3]),
-                       background_color = ast.literal_eval(item[4]),
+                       background_color = ast.literal_eval(colord[item[4]]),
                        size_hint=(0.19, 0.19),
                        pos_hint={'x': float(item[1]), 'y': float(item[2])})
                     btn.bind(on_press=lambda instance, i=i: self.butt_pressed(i))                  
@@ -258,6 +284,7 @@ class TotFloatLayout(App):
        def butt_pressed(self, button_id):
               #rint(f"Button with data '{item[0]}' pressed!")
               global configmode
+              global sfxpath
               
 
               item = button_dict.get(button_id)
@@ -270,7 +297,7 @@ class TotFloatLayout(App):
                         self.statline.text = f"Playing sound: {sound_file}"
                         ### need have an exeption here if file not found
                         try:
-                            os.system('aplay --buffer-size=800000 sfx/' + sound_file + '&')
+                            os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
                             
                             # omx not working properly in fedora test environment. Pi only
                             #os.system('omxplayer --audio_fifo 15 sfx/' + sound_file + '&')
@@ -329,13 +356,16 @@ def on_publish(client, userdata, mid):
 if __name__ == '__main__':
     configmode = False
 
-    # with open('config.json') as fptr:
-    #     config = json.load(fptr)
+    with open('config.json') as fptr:
+        config = json.load(fptr)
 
-    # SERVER = config["server"]
-    # SSID = config["ssid"]
-    # PWD = config["password"]
-    # pflag = config["printflag"]
+    SERVER = config["server"]
+    SSID = config["ssid"]
+    PWD = config["password"]
+    pflag = config["printflag"]
+    sfxpath = config["sfxpath"]
+    print(sfxpath)
+
 
     with open('tot_test.json') as fptr:
         button_dict = json.load(fptr)

@@ -3,5 +3,6 @@
     "ssid": "caseservices2",
     "password": "booboo42",
     "gmtoffset": 7,
-    "printflag": 0
+    "printflag": 0,
+    "sfxpath": "/home/steve/rasp_pi/tot_console/sfx/"
 }
