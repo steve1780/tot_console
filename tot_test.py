@@ -1,6 +1,12 @@
 # tot_console.py
 from fileinput import filename
 import json
+from kivy.config import Config
+# Set desired window size via Config before other Kivy imports
+Config.set('graphics', 'width', '1920')
+Config.set('graphics', 'height', '1080')
+Config.set('graphics', 'resizable', '1')
+
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
@@ -11,6 +17,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.slider import Slider
+from kivy.metrics import sp
 import ast
 import logging
 #import serial
@@ -35,6 +43,17 @@ colord = {
 class TotFloatLayout(App):
        global configmode
        global colord
+       # Font scale multiplier (1.0 = 100%). Increase by 60% => 1.6
+       FONT_SCALE = 1.6
+
+       def sp_scaled(self, value):
+            return sp(value * self.FONT_SCALE)
+
+       def sp_config(self, value):
+          """Scale fonts for config dialog: previously 30% larger, now reduced by 15%."""
+          # original factor = FONT_SCALE * 1.3; reduce the config dialog fonts by 15% -> *0.85
+          config_factor = self.FONT_SCALE * 1.3 * 0.85
+          return sp(value * config_factor)
 
        
        def select_file(self):
@@ -45,8 +64,8 @@ class TotFloatLayout(App):
             
             # Add buttons
             btn_layout = BoxLayout(size_hint_y=None, height=50)
-            cancel_btn = Button(text='Cancel')
-            select_btn = Button(text='Select')
+            cancel_btn = Button(text='Cancel', font_size=self.sp_scaled(14))
+            select_btn = Button(text='Select', font_size=self.sp_scaled(14))
             btn_layout.add_widget(cancel_btn)
             btn_layout.add_widget(select_btn)
             box.add_widget(btn_layout)
@@ -82,8 +101,8 @@ class TotFloatLayout(App):
             
             # Add buttons
             btn_layout = BoxLayout(size_hint_y=None, height=50)
-            cancel_btn = Button(text='Cancel')
-            select_btn = Button(text='Select')
+            cancel_btn = Button(text='Cancel', font_size=self.sp_scaled(14))
+            select_btn = Button(text='Select', font_size=self.sp_scaled(14))
             btn_layout.add_widget(cancel_btn)
             btn_layout.add_widget(select_btn)
             box.add_widget(btn_layout)
@@ -115,15 +134,16 @@ class TotFloatLayout(App):
             
             # Create popup
             content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-            popup = Popup(title='Configure Button', content=content, size_hint=(0.8, 0.9))
+            # Make popup slightly taller (approx +15%) so MQTT fields are more usable
+            popup = Popup(title='Configure Button', title_size=self.sp_config(18), content=content, size_hint=(0.48, 0.63))
             
             # Label name
-            content.add_widget(Label(text='Button Label:', size_hint_y=None, height=30))
-            label_input = TextInput(text=item[3], multiline=False)
+            content.add_widget(Label(text='Button Label:', size_hint_y=None, height=30, font_size=self.sp_config(14)))
+            label_input = TextInput(text=item[3], multiline=False, font_size=self.sp_config(14))
             content.add_widget(label_input)
             
             # Output type
-            content.add_widget(Label(text='Output Type:', size_hint_y=None, height=30))
+            content.add_widget(Label(text='Output Type:', size_hint_y=None, height=30, font_size=self.sp_config(14)))
             output_box = BoxLayout(size_hint_y=None, height=40)
             output_buttons = []
             output_options = ['3.5" #1', '3.5" #2', 'Amp1', 'Amp2']
@@ -131,23 +151,30 @@ class TotFloatLayout(App):
             current_output = item[8] if len(item) > 8 else 'A1'
             reverse_map = {v: k for k, v in output_map.items()}
             for opt in output_options:
-                btn = ToggleButton(text=opt, group='output', size_hint_x=0.25)
+                btn = ToggleButton(text=opt, group='output', size_hint_x=0.25, font_size=self.sp_config(14))
                 if reverse_map.get(current_output) == opt:
                     btn.state = 'down'
+                # Make background_color take effect
+                btn.background_normal = ''
+                btn.background_down = ''
                 output_box.add_widget(btn)
                 output_buttons.append(btn)
+            # Initialize visuals and bind handlers so state updates before handler runs
+            for btn in output_buttons:
+                btn.background_color = (0.1, 0.6, 0.1, 1) if btn.state == 'down' else (0.3, 0.3, 0.3, 1)
+                btn.bind(on_release=lambda inst, obs=output_buttons: self.on_output_selected(inst, obs))
             content.add_widget(output_box)
             
             # File selector
             filename = item[6] 
-            self.file_button = Button(text='Current Sound File: '+ filename, size_hint_y=None, height=40)
-            self.file_button.bind(on_press=self.select_file_for_config)
+            self.file_button = Button(text='Current Sound File: '+ filename, size_hint_y=None, height=40, font_size=self.sp_config(14))
+            self.file_button.bind(on_release=self.select_file_for_config)
             content.add_widget(self.file_button)
             self.selected_file = item[6] if item[5] == 'SND' else None
             
 
             # Effect type
-            content.add_widget(Label(text='Effect Type:', size_hint_y=None, height=30))
+            content.add_widget(Label(text='Effect Type:', size_hint_y=None, height=30, font_size=self.sp_config(14)))
             effect_box = BoxLayout(size_hint_y=None, height=40)
             effect_buttons = []
             effect_options = ['Sfx', 'MQTT', 'Macro']
@@ -155,32 +182,40 @@ class TotFloatLayout(App):
             current_effect = effect_map.get(item[5], 'Sfx')
             reverse_effect_map = {v: k for k, v in effect_map.items()}
             for opt in effect_options:
-                btn = ToggleButton(text=opt, group='effect', size_hint_x=0.33)
+                btn = ToggleButton(text=opt, group='effect', size_hint_x=0.33, font_size=self.sp_config(14))
                 if reverse_effect_map.get(item[5]) == opt:
                     btn.state = 'down'
+                btn.background_normal = ''
+                btn.background_down = ''
                 effect_box.add_widget(btn)
                 effect_buttons.append(btn)
+            # Initialize visuals and bind handlers
+            for btn in effect_buttons:
+                btn.background_color = (0.1, 0.6, 0.1, 1) if btn.state == 'down' else (0.3, 0.3, 0.3, 1)
+                btn.bind(on_release=lambda inst, ebs=effect_buttons: (self.on_effect_selected(inst), self.update_effect_visuals(ebs)))
             content.add_widget(effect_box)
             
-            # MQTT fields
-            self.topic_input = TextInput(hint_text='Topic', text=item[6] if item[5] == 'MQTT' else '', size_hint_y=None, height=30)
-            self.payload_input = TextInput(hint_text='Payload', text=item[7] if len(item) > 7 and item[5] == 'MQTT' else '', size_hint_y=None, height=30)
+            # MQTT fields (increase height for readability on touchscreens)
+            self.topic_input = TextInput(hint_text='Topic', text=item[6] if item[5] == 'MQTT' else '', size_hint_y=None, height=38, font_size=self.sp_config(14))
+            self.payload_input = TextInput(hint_text='Payload', text=item[7] if len(item) > 7 and item[5] == 'MQTT' else '', size_hint_y=None, height=38, font_size=self.sp_config(14))
             content.add_widget(self.topic_input)
             content.add_widget(self.payload_input)
-            
-            # Initially hide MQTT fields if not MQTT
+
+            # Initially hide MQTT fields if not MQTT (collapse height to avoid empty space)
             if item[5] != 'MQTT':
                 self.topic_input.opacity = 0
                 self.payload_input.opacity = 0
+                self.topic_input.height = 0
+                self.payload_input.height = 0
             
-            # Bind effect buttons to show/hide MQTT fields
+            # Bind effect buttons to show/hide MQTT fields (use on_release so ToggleButton state is updated first)
             for btn in effect_buttons:
-                btn.bind(on_press=self.on_effect_selected)
+                btn.bind(on_release=self.on_effect_selected)
             
             # OK Cancel
             btn_box = BoxLayout(size_hint_y=None, height=50)
-            cancel = Button(text='Cancel')
-            ok = Button(text='OK')
+            cancel = Button(text='Cancel', font_size=self.sp_config(14))
+            ok = Button(text='OK', font_size=self.sp_config(14))
             btn_box.add_widget(cancel)
             btn_box.add_widget(ok)
             content.add_widget(btn_box)
@@ -192,11 +227,26 @@ class TotFloatLayout(App):
             
        def on_effect_selected(self, instance):
             if instance.text == 'MQTT':
-                self.topic_input.opacity = 1
-                self.payload_input.opacity = 1
+             # Reveal and size MQTT fields
+             self.topic_input.opacity = 1
+             self.payload_input.opacity = 1
+             self.topic_input.height = 38
+             self.payload_input.height = 38
             else:
-                self.topic_input.opacity = 0
-                self.payload_input.opacity = 0
+             # Hide and collapse MQTT fields
+             self.topic_input.opacity = 0
+             self.payload_input.opacity = 0
+             self.topic_input.height = 0
+             self.payload_input.height = 0
+
+       def on_output_selected(self, instance, output_buttons):
+          # Update visuals for output toggle buttons so the 'down' state is obvious
+          for btn in output_buttons:
+             btn.background_color = (0.1, 0.6, 0.1, 1) if btn.state == 'down' else (0.3, 0.3, 0.3, 1)
+
+       def update_effect_visuals(self, effect_buttons):
+          for btn in effect_buttons:
+             btn.background_color = (0.1, 0.6, 0.1, 1) if btn.state == 'down' else (0.3, 0.3, 0.3, 1)
 
        def get_color_for_output(self, output_type):
             """Get button color based on output type (A1, A2, Amp1, Amp2)"""
@@ -258,26 +308,108 @@ class TotFloatLayout(App):
 
             popup.dismiss()
        
+       def toggle_config_mode(self, instance=None):
+            global configmode
+            # Simple toggle: flip the configmode flag and update visuals
+            configmode = not configmode
+            try:
+                if configmode:
+                    self.config_button.background_color = (0.9, 0.3, 0.3, 1)
+                    self.statline.text = 'Config mode: ON'
+                else:
+                    self.config_button.background_color = (0.3, 0.3, 0.3, 1)
+                    self.statline.text = 'Status: Ready'
+            except Exception:
+                pass
+
+       def on_key_down(self, window, key, scancode=None, codepoint=None, modifiers=None):
+            # F1 keycode on many systems is 282; toggle config on F1
+            try:
+                if key == 282:
+                    self.toggle_config_mode()
+                    return True
+            except Exception:
+                pass
+            return False
+
+       def apply_volume(self, value):
+            pct = max(0, min(100, int(value)))
+            self.volume_label.text = f'Volume: {pct}%'
+            if hasattr(self, 'volume_slider'):
+                self.volume_slider.value = pct
+            try:
+                os.system(f'amixer set "Master" {pct}% unmute >/dev/null 2>&1 || amixer set "PCM" {pct}% unmute >/dev/null 2>&1')
+            except Exception:
+                pass
+
+       def set_volume(self, instance, value):
+            self.apply_volume(value)
+
        def build(self):
             self.title = 'Tot Console Test'
-            Window.size = (800, 600)
+            # Window size is configured via Config at import time.
+            # Keep Window.size in sync in case runtime change is needed.
+            Window.size = (1920, 1080)
             self.layout = FloatLayout()
             self.current_button = None
             self.buttons = {}
 
-            self.statline = Label(text='Status: Ready', size_hint=(1, 0.1), pos_hint={'x':0, 'y':0})
+            self.layout.canvas.before.clear()
+            with self.layout.canvas.before:
+                from kivy.graphics import Color, Rectangle
+                Color(0.08, 0.08, 0.08, 1)
+                Rectangle(pos=self.layout.pos, size=self.layout.size)
+
+            top_bar = BoxLayout(size_hint=(1, 0.08), pos_hint={'x': 0, 'y': 0.92}, padding=(12, 6), spacing=4)
+            with top_bar.canvas.before:
+                from kivy.graphics import Color, Rectangle
+                Color(0.18, 0.18, 0.18, 1)
+                Rectangle(pos=top_bar.pos, size=top_bar.size)
+
+            # Config button will be placed at the bottom-left (created later)
+
+            self.volume_label = Label(text='Volume: 80%', color=(0.95, 0.92, 0.70, 1), bold=True, size_hint_x=None, width=120, font_size=self.sp_scaled(14))
+            self.volume_slider = Slider(min=0, max=100, value=80, step=1, size_hint_x=None, width=220)
+            self.volume_slider.bind(value=self.set_volume)
+
+            # Add CONFIG Button to the top bar (use regular Button)
+            self.config_button = Button(text='CONFIG', bold=True, background_normal='', background_down='', background_color=(0.3, 0.3, 0.3, 1), color=(0.95, 0.92, 0.70, 1), font_size=self.sp_scaled(16), size_hint_x=None, width=110)
+            # Bind only on_release so mouse clicks work reliably
+            self.config_button.bind(on_release=self.toggle_config_mode)
+            top_bar.add_widget(self.config_button)
+            top_bar.add_widget(Label(size_hint_x=1))
+            top_bar.add_widget(self.volume_label)
+            top_bar.add_widget(self.volume_slider)
+            self.layout.add_widget(top_bar)
+            # Bind keyboard F1 to toggle config
+            Window.bind(on_key_down=self.on_key_down)
+
+            button_layer = FloatLayout(size_hint=(1, 0.90), pos_hint={'x':0, 'y':0})
+            self.layout.add_widget(button_layer)
+
+            self.statline = Label(text='Status: Ready', size_hint=(1, 0.08), pos_hint={'x':0, 'y':0}, color=(0.95, 0.95, 0.95, 1), bold=True, font_size=self.sp_scaled(14))
             self.layout.add_widget(self.statline)
+
+            self.apply_volume(self.volume_slider.value)
+
+            
 
             for i in range(1, 31):
                 item = button_dict.get(i)
-                if item:                    
-                    btn = Button(text=str(item[3]),
-                       background_color = ast.literal_eval(colord[item[4]]),
-                       size_hint=(0.19, 0.19),
-                       pos_hint={'x': float(item[1]), 'y': float(item[2])})
-                    btn.bind(on_press=lambda instance, i=i: self.butt_pressed(i))                  
-                    self.layout.add_widget(btn)
-                    self.buttons[i] = btn              
+                if not item:
+                    continue
+                if item[5] == 'MENU':
+                    continue
+
+                btn = Button(text=str(item[3]),
+                             background_color=ast.literal_eval(colord[item[4]]),
+                             size_hint=(0.19, 0.19),
+                             pos_hint={'x': float(item[1]), 'y': float(item[2])},
+                             font_size=self.sp_scaled(14))
+                # Use on_release so both touch and mouse click trigger reliably
+                btn.bind(on_release=lambda instance, i=i: self.butt_pressed(i))
+                button_layer.add_widget(btn)
+                self.buttons[i] = btn
                         
             return self.layout
 
@@ -289,26 +421,30 @@ class TotFloatLayout(App):
 
               item = button_dict.get(button_id)
               if not item:
-                  return       
+                  return
+
+              # If we're in config mode, allow configuration for SND, MQTT, and EFF buttons
+              if configmode:
+                  if item[5] in ("SND", "MQTT", "EFF"):
+                      try:
+                          self.statline.text = f"Config mode: ON {item[3]}"
+                      except Exception:
+                          self.statline.text = "Config mode: ON"
+                      self.config_dialog(button_id)
+                      return
+
+              # Normal (non-config) behavior
               if item[5] == "SND":
                   sound_file = item[6]
-                  if configmode == False:
-                       
+                  if not configmode:
                         self.statline.text = f"Playing sound: {sound_file}"
-                        ### need have an exeption here if file not found
+                        # need an exception here if file not found
                         try:
                             os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
-                            
-                            # omx not working properly in fedora test environment. Pi only
-                            #os.system('omxplayer --audio_fifo 15 sfx/' + sound_file + '&')
-
                         except FileNotFoundError:
                             self.statline.text = f"Error playing sound, file not found"
                         else:
                             self.statline.text = f"Playing sound: {sound_file}"
-                  else:
-                        self.statline.text = f"Config mode: ON {sound_file}"
-                        self.config_dialog(button_id)
 
               if item[5] == "EFF":
                   effect_name = item[6]
@@ -330,7 +466,7 @@ class TotFloatLayout(App):
                       self.statline.text = "Status: Ready"
 
               if item[0] == "sound11" :
-                   Window.size = (800,600)
+                   Window.size = (1920,1080)
 
 # functions ===========================================================
 def on_log(client, userdata, level, buf):

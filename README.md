@@ -11,8 +11,12 @@ A sound effect is started by touching keys on the Fluke serial monitor. Touch es
 
 ## New Program Goals          
 - Use Kivy to design button-oriented application
-- Program will be run and accessed over VNC with the new python applicaion in Kivy running on the Raspberry Pi host.
-- User interface will be accessed through an VNC client on an iPad or other modern toudh device.
+- Wanted to use VNC, but my Pi's are too slow and Kivy looks terrible through it. (Some drawing, graphics issues)
+- User interface will be either a tethered solution with a HDMI touch screen or with a wireless protocol.
 - Uses a json file to define the buttons and sounds to be played.
+
+## Some Ideas Implemented
+- Button color is tied to the output number. There are four outputs. This is so an output can be referenced by color.
+-           
 
 
