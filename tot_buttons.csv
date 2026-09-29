@@ -1,0 +1,34 @@
+button_number,name,x,y,label,color,effect_type,topic_or_file,payload,output
+1,sound0,0.0,0.1,<<<,YELLOW,SND,atatin.wav,,A1
+2,sound1,0.2,0.1,Fly: HELP ME,BLUE,SND,HELPME.WAV,,A2
+3,sound2,0.4,0.1,LABEL,GREEN,SND,trouble.wav,,A1
+4,sound3,0.6,0.1,BOOGEY MAN,GREEN,SND,bogeym.wav,,A1
+5,sound4,0.8,0.1,>>>>,YELLOW,SND,havecandy.wav,,A1
+6,sound5,0.0,0.26,LABEL,GREEN,SND,orders.wav,,A1
+7,sound6,0.2,0.26,RP1 AS You ASK,GREEN,MQTT,RP1,ASYOUASK.WAV,A1
+8,sound7,0.4,0.26,MQTT Melting,GREEN,MQTT,RP1,MELTING.WAV,A1
+9,sound8,0.6,0.26,MELTING,BLUE,SND,MELTING.WAV,,A1
+10,sound9,0.8,0.26,CHAINS,YELLOW,SND,CHAINS.WAV,,A1
+11,sound10,0.0,0.42,LABEL,GREEN,SND,ayee.wav,,A1
+12,sound11,0.2,0.42,Boo,BLUE,SND,BMOAN.WAV,,A2
+13,sound12,0.4,0.42,GLINDA Witch,ORANGE,MQTT,Hi,Glinda,Amp2
+14,sound13,0.6,0.42,LABEL,GREEN,SND,little_ones.wav,,A1
+15,sound14,0.8,0.42,LABEL,GREEN,SND,candy.wav,,A1
+16,sound15,0.0,0.58,HHaunt,GREEN,SND,HHAUNT.WAV,,A1
+17,sound16,0.2,0.58,33,GREEN,SND,ASYOUASK.WAV,,Amp2
+18,sound17,0.4,0.58,Good Night,GREEN,SND,CREEKD2.WAV,,A1
+19,sound18,0.6,0.58,GODZILLA,RED,SND,GODZILLA.WAV,,Amp1
+20,sound19,0.8,0.58,Alive 1,RED,SND,ALIVE.WAV,,Amp1
+21,sound20,0.0,0.74,   LIGHTNING,GREEN,EFF,thunder3.wav,,A1
+22,sound21,0.2,0.74,Haunted House 2,GREEN,SND,hh2.wav,,A1
+23,sound22,0.4,0.74,Haunted House,GREEN,SND,hh.wav,,A1
+24,sound23,0.6,0.74,FOOTSTEPS 16,GREEN,SND,16footsteps.wav,,A1
+25,sound24,0.8,0.74,OZ OZ OZ,RED,SND,OZHASSPO.WAV,,Amp1
+26,config,0.0,0.9,"
+
+
+CONFIG",BLACK,MENU,CONFIG,,A1
+27,menu1,0.2,0.9,,BLACK,MQTT,CONFIG, ,A1
+28,menu1,0.4,0.9,,BLACK,MQTT,CONFIG, ,A1
+29,menu1,0.6,0.9,,BLACK,MQTT,CONFIG, ,A1
+30,menu1,0.8,0.9,,BLACK,MQTT,CONFIG, ,A1
