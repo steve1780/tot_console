@@ -33,6 +33,7 @@ broker_address = "gamma"
 port = 1883
 
 configmode = False
+button_json_file = 'tot_console.json'
 colord = {
     "BLACK": "(0,0,0,1)",
     "YELLOW": "(1,1,0,1)",
@@ -91,7 +92,7 @@ class TotFloatLayout(App):
                 button_dict[self.current_button][6] = selected_file
                 print(f"Updated button {self.current_button} to {selected_file}")
                 # Save to json
-                with open('tot_console.json', 'w') as f:
+                with open(button_json_file, 'w') as f:
                     json.dump(button_dict, f, indent=4)
                 self.statline.text = f"Button {self.current_button} updated to {selected_file}"
             else:
@@ -308,7 +309,7 @@ class TotFloatLayout(App):
             self.buttons[button_id].background_color = ast.literal_eval(colord[color_name])
             
             # Save to json
-            with open('tot_test.json', 'w') as f:
+            with open(button_json_file, 'w') as f:
                 json.dump(button_dict, f, indent=4)
 
             popup.dismiss()
@@ -349,6 +350,27 @@ class TotFloatLayout(App):
 
        def set_volume(self, instance, value):
             self.apply_volume(value)
+
+       def show_button_page(self, page):
+            self.current_page = page
+            self.button_layer.clear_widgets()
+            self.buttons.clear()
+
+            first_button_id = 1 if page == 1 else 26
+            last_button_id = 25 if page == 1 else 50
+            for button_id in range(first_button_id, last_button_id + 1):
+                item = button_dict.get(button_id)
+                if not item or item[5] == 'MENU':
+                    continue
+
+                btn = Button(text=str(item[3]),
+                             background_color=ast.literal_eval(colord[item[4]]),
+                             size_hint=(0.19, 0.19),
+                             pos_hint={'x': float(item[1]), 'y': float(item[2])},
+                             font_size=self.sp_scaled(14))
+                btn.bind(on_release=lambda instance, button_id=button_id: self.butt_pressed(button_id))
+                self.button_layer.add_widget(btn)
+                self.buttons[button_id] = btn
 
        def build(self):
             self.title = 'Trick Or Treat Console'
@@ -415,7 +437,9 @@ class TotFloatLayout(App):
             Window.bind(on_key_down=self.on_key_down)
 
             button_layer = FloatLayout(size_hint=(1, 0.90), pos_hint={'x':0, 'y':0})
+            self.button_layer = button_layer
             self.layout.add_widget(button_layer)
+            self.show_button_page(1)
 
             self.statline = Label(text='Status: Ready', size_hint=(1, 0.08), pos_hint={'x':0, 'y':0}, color=(0.95, 0.95, 0.95, 1), bold=True, font_size=self.sp_scaled(14))
             self.layout.add_widget(self.statline)
@@ -423,23 +447,6 @@ class TotFloatLayout(App):
             self.apply_volume(self.volume_slider.value)
 
             
-
-            for i in range(1, 31):
-                item = button_dict.get(i)
-                if not item:
-                    continue
-                if item[5] == 'MENU':
-                    continue
-
-                btn = Button(text=str(item[3]),
-                             background_color=ast.literal_eval(colord[item[4]]),
-                             size_hint=(0.19, 0.19),
-                             pos_hint={'x': float(item[1]), 'y': float(item[2])},
-                             font_size=self.sp_scaled(14))
-                # Use on_release so both touch and mouse click trigger reliably
-                btn.bind(on_release=lambda instance, i=i: self.butt_pressed(i))
-                button_layer.add_widget(btn)
-                self.buttons[i] = btn
 
             # Add this last so the control remains above the button layer.
             self.layout.add_widget(volume_box)
@@ -468,6 +475,13 @@ class TotFloatLayout(App):
 
               item = button_dict.get(button_id)
               if not item:
+                  return
+
+              if item[3] in (">>>", ">>>>"):
+                  self.show_button_page(2)
+                  return
+              if item[3] == "<<<":
+                  self.show_button_page(1)
                   return
 
               # If we're in config mode, allow configuration for SND, MQTT, and EFF buttons
@@ -603,7 +617,10 @@ if __name__ == '__main__':
     client.publish("strobe","off")
     print('Initial topics published')
 
-    with open('tot_test.json') as fptr:
+    if not os.path.exists(button_json_file):
+        button_json_file = 'tot_console.json'
+
+    with open(button_json_file) as fptr:
         button_dict = json.load(fptr)
 
     # swap the json string key index for int that we need in the kv file
