@@ -502,7 +502,9 @@ class TotFloatLayout(App):
                         client.publish("RP1", sound_file)
                         # need an exception here if file not found
                         try:
-                            os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
+                            #os.system('aplay --buffer-size=200000 ' + sfxpath + sound_file + '&')
+                            os.system('mpv --no-video --ao=pulse ' + sfxpath + sound_file + '&')
+
                         except FileNotFoundError:
                             self.statline.text = f"Error playing sound, file not found"
                         else:
@@ -525,8 +527,8 @@ class TotFloatLayout(App):
                 # #GPIO.output(relayDB[6], ROff) # turn off strobe trigger      
 
                 # #play the thunder sound on the console 
-                os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
-                
+                #os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
+                os.system('mpv --no-video --ao=pulse ' + sfxpath + sound_file + '&')
 
                 # # Play the thunder on the soundbar only
                 client.publish("RP1", sound_file)
@@ -546,7 +548,8 @@ class TotFloatLayout(App):
                   mpayload = item[7]
                   self.statline.text = f"MQTT command: {mtopic}, {mpayload}"
                   client.publish(mtopic, mpayload)
-                  os.system('aplay --buffer-size=800000 ' + sfxpath + mpayload + '&')
+                  #os.system('aplay --buffer-size=800000 ' + sfxpath + mpayload + '&')
+                  os.system('mpv --no-video --ao=pulse ' + sfxpath + mpayload + '&')
 
               if item[5] == "MENU":
                   menu_name = item[6]

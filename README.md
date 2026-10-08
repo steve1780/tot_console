@@ -43,3 +43,11 @@ python tot_jv.py -cc tot_test.json sc.csv
 # to json
 python tot_jv.py -cj sc.csv tot_test2.json
 ```
+
+## Mixer Update
+We had become pretty dependant on the fact that the Pi supports playing multiple sounds at a time when on the same speaker. Thsi mixing effect is really cool as you can press multiple buttons quickly and overlay sounds. We modified the TPI MQTT program to not clear the channel after each sound since it runs all the sounds not and not the Pi-1020 system.
+
+The Pi 500 somehow became updated with an internal update (not in the UV environment) so we had to switch audio player to mpv which uses PipeWire for audio.
+```
+os.system('mpv --no-video --ao=pulse ' + sfxpath + mpayload + '&')
+```
