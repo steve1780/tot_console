@@ -157,11 +157,11 @@
         "sound14",
         "0.8",
         "0.42",
-        "LABEL",
-        "ORANGE",
+        "roger",
+        "GREEN",
         "MQTT",
         "RP2",
-        "candy.wav",
+        "matt_roger.wav",
         "A1"
     ],
     "16": [
@@ -190,12 +190,12 @@
         "sound17",
         "0.4",
         "0.58",
-        "Good Night",
+        "Creeek",
         "ORANGE",
         "MQTT",
         "RP2",
         "CREEKD2.WAV",
-        "A1"
+        "Amp2"
     ],
     "19": [
         "sound18",
@@ -267,10 +267,10 @@
         "sound24",
         "0.8",
         "0.74",
-        "OZ OZ OZ",
+        "RAIN RAIN",
         "GREEN",
         "SND",
-        "OZHASSPO.WAV",
+        "rainrain3.wav",
         "",
         "A1"
     ],
@@ -414,8 +414,8 @@
         "ORANGE",
         "MQTT",
         "RP2",
-        "CREEK2.WAV",
-        "A1"
+        "CREEKD2.WAV",
+        "Amp2"
     ],
     "39": [
         "sound13",
@@ -520,10 +520,10 @@
         "sound22",
         "0.4",
         "0.74",
-        "SNOOP LAF",
+        "Please, come in",
         "GREEN",
         "SND",
-        "snooplaf.wav",
+        "NICE2SEE.WAV",
         "",
         "A1"
     ],

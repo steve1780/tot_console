@@ -160,13 +160,7 @@ class TotFloatLayout(App):
                 btn = ToggleButton(text=opt, group='output', size_hint_x=0.25, font_size=self.sp_config(14))
                 if reverse_map.get(current_output) == opt:
                     btn.state = 'down'
-                # Make background_color take effect
-                btn.background_normal = ''
-                btn.background_down = ''
-                output_box.add_widget(btn)
-                output_buttons.append(btn)
-            # Initialize visuals and bind handlers so state updates before handler runs
-            for btn in output_buttons:
+                # Make background_color take T            for btn in output_buttons:
                 btn.background_color = (0.1, 0.6, 0.1, 1) if btn.state == 'down' else (0.3, 0.3, 0.3, 1)
                 btn.bind(on_release=lambda inst, obs=output_buttons: self.on_output_selected(inst, obs))
             content.add_widget(output_box)
@@ -344,7 +338,7 @@ class TotFloatLayout(App):
             if hasattr(self, 'volume_slider'):
                 self.volume_slider.value = pct
             try:
-                os.system(f'amixer set "Master" {pct}% unmute >/dev/null 2>&1 || amixer set "PCM" {pct}% unmute >/dev/null 2>&1')
+                os.system(f'amixer set Master {pct}% unmute >/dev/null 2>&1 || amixer set PCM {pct}% unmute >/dev/null 2>&1')
             except Exception:
                 pass
 
@@ -514,34 +508,30 @@ class TotFloatLayout(App):
                 sound_file = item[6]  # Assuming the sound file is stored in the 7th position
                 effect_name = item[6]
                 self.statline.text = f"Triggering effect please wait ..."
-                     
-                client.publish("effect", "on")
+                #sleep(1)             
 
-                # #GPIO.output(relayDB[6], ROn)  # initiate light effects
-                # client.publish("lights/circuit1", "off")
-                # client.publish("lights/circuit2", "off")
+                client.publish("lights/circuit1", "off")
+                client.publish("lights/circuit2", "off")
                 
-                # sleep(1)
+                #sleep(1)
                 # # Trigger the strobe 
-                # client.publish("lights/circuit3", "on")
-                # #GPIO.output(relayDB[6], ROff) # turn off strobe trigger      
-
+                client.publish("lights/circuit3", "on")
+                
                 # #play the thunder sound on the console 
                 #os.system('aplay --buffer-size=800000 ' + sfxpath + sound_file + '&')
+                sleep(3)
+                # Not playing the local sound as it gives bad timing impression
                 os.system('mpv --no-video --ao=pulse ' + sfxpath + sound_file + '&')
 
                 # # Play the thunder on the soundbar only
                 client.publish("RP1", sound_file)
 
                 # # wait tiny bit before strobe off
-                # sleep(4)
-                # client.publish("lights/circuit3", "off")
-
-                # #wait some more time before turning the lights back on
-                # sleep(4)
-                # client.publish("lights/circuit1", "on")
-                # client.publish("lights/circuit2", "on")
-
+                sleep(6)
+                client.publish("lights/circuit3", "off")
+                client.publish("lights/circuit1", "on")
+                client.publish("lights/circuit2", "on")
+                self.statline.text = f"Ready                   "
               
               if item[5] == "MQTT":
                   mtopic = item[6]
